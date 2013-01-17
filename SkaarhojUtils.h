@@ -52,6 +52,10 @@ class SkaarhojUtils
 	int _encoders_interruptStateNumMem[2];
 	int _encoders_interruptStateLastCount[2];
 	
+	uint8_t _touch_A0;
+	uint8_t _touch_A1;
+	uint8_t _touch_A2;
+	uint8_t _touch_A3;
 	int _touch_Xthreshold;
 	int _touch_Ythreshold;
 	int _touch_rawXVal;
@@ -106,6 +110,7 @@ class SkaarhojUtils
 	
 		// Touch functions:
 	void touch_init();
+	void touch_setExtended();
 	void touch_calibrationPointRawCoordinates(int p1x, int p1y, int p2x, int p2y, int p3x, int p3y, int p4x, int p4y);
 	bool touch_isTouched();
 	int touch_getRawXVal();

@@ -15,6 +15,7 @@ void setup() {
   Serial.println("Coordinate system origo should be lower left corner of screen");
   
   utils.touch_init();
+  //utils.touch_setExtended();
   
     // The line below is calibration numbers for a specific monitor. 
     // Substitute this with calibration for YOUR monitor (see example "Touch_Calibrate")

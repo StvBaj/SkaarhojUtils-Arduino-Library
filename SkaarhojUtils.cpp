@@ -246,6 +246,11 @@ int SkaarhojUtils::encoders_state(uint8_t encNum, unsigned int buttonPushTrigger
 
 
 void SkaarhojUtils::touch_init() {
+	_touch_A0 = A0;
+	_touch_A1 = A1;
+	_touch_A2 = A2;
+	_touch_A3 = A3;
+	
 		// Threshold for reading value that indicates a touch:
 	_touch_Xthreshold = 1000;
 	_touch_Ythreshold = 1000;
@@ -270,6 +275,12 @@ void SkaarhojUtils::touch_init() {
 	_touch_scaleRangeX = 1280;
 	_touch_scaleRangeY = 720;
 }
+void SkaarhojUtils::touch_setExtended(){
+	_touch_A0 = A6;
+	_touch_A1 = A7;
+	_touch_A2 = A8;
+	_touch_A3 = A9;
+}
 void SkaarhojUtils::touch_calibrationPointRawCoordinates(int p1x, int p1y, int p2x, int p2y, int p3x, int p3y, int p4x, int p4y) 	{
 	_touch_marginLeft = float ((p1x-(p2x-p1x)/2)+(p4x-(p3x-p4x)/2))/2;
 	_touch_marginRight = float ((p2x+(p2x-p1x)/2)+(p3x+(p3x-p4x)/2))/2;
@@ -283,25 +294,25 @@ bool SkaarhojUtils::touch_isTouched() {
 
 	// Set up the analog pins in preparation for reading the X value
 	// from the touchscreen.
-	pinMode(A1, INPUT_PULLUP);     // Analog pin 1
-	pinMode(A3, INPUT_PULLUP);     // Analog pin 3
-	pinMode(A0, OUTPUT);    // Analog pin 0
-	pinMode(A2, OUTPUT);    // Analog pin 2
-	digitalWrite(A0, LOW);  // Use analog pin 0 as a GND connection
-	digitalWrite(A2, HIGH); // Use analog pin 2 as a +5V connection
+	pinMode(_touch_A1, INPUT_PULLUP);     // Analog pin 1
+	pinMode(_touch_A3, INPUT_PULLUP);     // Analog pin 3
+	pinMode(_touch_A0, OUTPUT);    // Analog pin 0
+	pinMode(_touch_A2, OUTPUT);    // Analog pin 2
+	digitalWrite(_touch_A0, LOW);  // Use analog pin 0 as a GND connection
+	digitalWrite(_touch_A2, HIGH); // Use analog pin 2 as a +5V connection
 	delay(1);
-	_touch_rawXVal = analogRead(A1);   // Read the X value
+	_touch_rawXVal = analogRead(_touch_A1);   // Read the X value
 
 	// Set up the analog pins in preparation for reading the Y value
 	// from the touchscreen
-	pinMode(A0, INPUT_PULLUP);     // Analog pin 0
-	pinMode(A2, INPUT_PULLUP);     // Analog pin 2
-	pinMode(A1, OUTPUT);    // Analog pin 1
-	pinMode(A3, OUTPUT);    // Analog pin 3
-	digitalWrite(A1, LOW);  // Use analog pin 1 as a GND connection
-	digitalWrite(A3, HIGH); // Use analog pin 3 as a +5V connection
+	pinMode(_touch_A0, INPUT_PULLUP);     // Analog pin 0
+	pinMode(_touch_A2, INPUT_PULLUP);     // Analog pin 2
+	pinMode(_touch_A1, OUTPUT);    // Analog pin 1
+	pinMode(_touch_A3, OUTPUT);    // Analog pin 3
+	digitalWrite(_touch_A1, LOW);  // Use analog pin 1 as a GND connection
+	digitalWrite(_touch_A3, HIGH); // Use analog pin 3 as a +5V connection
 	delay(1);
-	_touch_rawYVal = analogRead(A0);   // Read the Y value
+	_touch_rawYVal = analogRead(_touch_A0);   // Read the Y value
 
 	// Return true if touched:
 	return (_touch_rawYVal < _touch_Ythreshold && _touch_rawXVal < _touch_Xthreshold);
