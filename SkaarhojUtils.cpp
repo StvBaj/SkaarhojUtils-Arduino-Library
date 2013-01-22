@@ -25,6 +25,9 @@ void SkaarhojUtils::debugMode()	{
 }
 
 
+/**
+ * Slider functions:
+ */
 void SkaarhojUtils::uniDirectionalSlider_init(){
 	uniDirectionalSlider_init(10, 35, 35, A0);
 }
@@ -36,6 +39,8 @@ void SkaarhojUtils::uniDirectionalSlider_init(int sliderTolerance, int sliderLow
     _uniDirectionalSlider_sliderLowEndOffset = sliderLowEndOffset;  // >0. How far the slider is moved in the low end before we start registering the value range: The starting position.
     _uniDirectionalSlider_sliderHighEndOffset = sliderHighEndOffset;  // >0. How far the slider is moved in the high end before we start registering the value range: The ending position.
 
+	pinMode(analogInputPin, INPUT);
+	
 		// Internal variables during operation:
 	_uniDirectionalSlider_previousSliderValue=-1;
 	_uniDirectionalSlider_previousTransitionPosition=-1;
@@ -45,13 +50,13 @@ void SkaarhojUtils::uniDirectionalSlider_init(int sliderTolerance, int sliderLow
 bool SkaarhojUtils::uniDirectionalSlider_hasMoved()	{
 	int sliderValue = analogRead(_uniDirectionalSlider_analogInputPin);
 
-	if (sliderValue > _uniDirectionalSlider_previousSliderValue+_uniDirectionalSlider_sliderTolerance || sliderValue < _uniDirectionalSlider_previousSliderValue-_uniDirectionalSlider_sliderTolerance)  {
+	if (sliderValue >= _uniDirectionalSlider_previousSliderValue+_uniDirectionalSlider_sliderTolerance || sliderValue <= _uniDirectionalSlider_previousSliderValue-_uniDirectionalSlider_sliderTolerance)  {
 
 		// Find direction:
-		if (sliderValue > _uniDirectionalSlider_previousSliderValue+_uniDirectionalSlider_sliderTolerance && (_uniDirectionalSlider_previousSliderValue==-1 || _uniDirectionalSlider_previousSliderValue<_uniDirectionalSlider_sliderLowEndOffset))  {
+		if (sliderValue >= _uniDirectionalSlider_previousSliderValue+_uniDirectionalSlider_sliderTolerance && (_uniDirectionalSlider_previousSliderValue==-1 || _uniDirectionalSlider_previousSliderValue<_uniDirectionalSlider_sliderLowEndOffset))  {
 			_uniDirectionalSlider_sliderDirectionUp = true;
 		}
-		if (sliderValue < _uniDirectionalSlider_previousSliderValue-_uniDirectionalSlider_sliderTolerance && (_uniDirectionalSlider_previousSliderValue==-1 || _uniDirectionalSlider_previousSliderValue>1024-_uniDirectionalSlider_sliderHighEndOffset))  {
+		if (sliderValue <= _uniDirectionalSlider_previousSliderValue-_uniDirectionalSlider_sliderTolerance && (_uniDirectionalSlider_previousSliderValue==-1 || _uniDirectionalSlider_previousSliderValue>1024-_uniDirectionalSlider_sliderHighEndOffset))  {
 			_uniDirectionalSlider_sliderDirectionUp = false;
 		}
 
@@ -87,6 +92,141 @@ bool SkaarhojUtils::uniDirectionalSlider_isAtEnd()	{
 
 
 
+/**
+ * Joystick
+ */
+void SkaarhojUtils::joystick_init(int tolerance, uint8_t analogInputPinHorizontal, uint8_t analogInputPinVertical, uint8_t digitalInputPin)	{
+
+		// Configuration constants, should have setter-methods:
+	_joystick_analogInputPin[0] = analogInputPinHorizontal;
+	_joystick_analogInputPin[1] = analogInputPinVertical;
+	_joystick_digitalInputPin = digitalInputPin;
+	_joystick_tolerance = tolerance; 
+	
+	pinMode(analogInputPinHorizontal, INPUT);
+	pinMode(analogInputPinVertical, INPUT);
+	pinMode(digitalInputPin, INPUT_PULLUP);
+
+		// Internal variables during operation:
+	_joystick_previousPosition[0] = -1000;
+	_joystick_previousPosition[1] = -1000;
+	_joystick_previousValue[0] = -1000;
+	_joystick_previousValue[1] = -1000;
+	
+		// Reset:
+	_joystick_centerValue[0] = analogRead(_joystick_analogInputPin[0]);
+	_joystick_centerValue[1] = analogRead(_joystick_analogInputPin[1]);
+	joystick_hasMoved(0);
+	joystick_hasMoved(1);
+	
+	Serial.print("Center values: ");
+	Serial.print(_joystick_centerValue[0]);
+	Serial.print(",");
+	Serial.print(_joystick_centerValue[1]);
+	Serial.println();
+}
+
+bool SkaarhojUtils::joystick_hasMoved(uint8_t index)	{	// Index is 0 or 1
+	if (index <=1)	{
+		int potValue = analogRead(_joystick_analogInputPin[index])-_joystick_centerValue[index];
+
+		if (potValue >= _joystick_previousValue[index]+_joystick_tolerance || potValue <= _joystick_previousValue[index]-_joystick_tolerance)  {
+
+			_joystick_previousValue[index] = potValue;
+
+			int joystickPosition = potValue;
+			if (potValue<0)	{
+				joystickPosition = (long)100*(long)joystickPosition/(long)_joystick_centerValue[index];
+			} else {
+				joystickPosition = (long)100*(long)joystickPosition/(long)(1023-_joystick_centerValue[index]);
+			}
+			if (joystickPosition>97) joystickPosition=100;
+			if (joystickPosition<-97) joystickPosition=-100;
+			if (joystickPosition < 3 && joystickPosition > -3)	joystickPosition=0;
+		
+			if (_joystick_previousPosition[index]!=joystickPosition)  {
+				_joystick_previousPosition[index]=-joystickPosition;
+				return true;
+			}
+		}
+		return false;
+	}
+}
+
+int SkaarhojUtils::joystick_position(uint8_t index)	{
+	return _joystick_previousPosition[index];
+}
+bool SkaarhojUtils::joystick_buttonUp() {
+	bool buttonChange = (_joystick_buttonStatusLastUp ^ joystick_buttonIsPressed());
+	_joystick_buttonStatusLastUp ^= buttonChange;
+
+	return (buttonChange & ~_joystick_buttonStatus) ? true : false;
+}
+bool SkaarhojUtils::joystick_buttonDown() {
+	bool buttonChange = (_joystick_buttonStatusLastDown ^ joystick_buttonIsPressed());
+	_joystick_buttonStatusLastDown ^= buttonChange;
+
+	return (buttonChange & _joystick_buttonStatus) ? true : false;
+}
+bool SkaarhojUtils::joystick_buttonIsPressed() {
+	_joystick_buttonStatus = !digitalRead(_joystick_digitalInputPin);
+	return _joystick_buttonStatus;
+}
+
+
+/**
+ * Switches functions
+ */
+void SkaarhojUtils::switch_init(uint8_t digitalInputPin_sw0,uint8_t digitalInputPin_sw1)	{	// For now, only two pins, but this can be extended...
+	_switch_digitalInputPins[0] = digitalInputPin_sw0;
+	_switch_digitalInputPins[1] = digitalInputPin_sw1;
+	
+	pinMode(_switch_digitalInputPins[0], INPUT_PULLUP);
+	pinMode(_switch_digitalInputPins[1], INPUT_PULLUP);
+	delay(2);
+	
+	_switch_invertFilter = 0;
+	switch_readPinsStatus();
+	_switch_invertFilter = _switch_buttonStatus;	// Automatically detect default state and invert it...
+}
+bool SkaarhojUtils::switch_buttonUp(uint8_t switchNumber) {	// Returns true if a switch 0-7 is has just been released
+	if (switchNumber<8)	{
+		switch_readPinsStatus();
+
+		uint8_t mask = (B1 << switchNumber);
+		uint8_t buttonChange = (_switch_buttonStatusLastUp ^ _switch_buttonStatus) & mask;
+		_switch_buttonStatusLastUp ^= buttonChange;
+
+		return (buttonChange & ~_switch_buttonStatus) ? true : false;
+	} else return false;
+}
+bool SkaarhojUtils::switch_buttonDown(uint8_t switchNumber) {	// Returns true if a switch 0-7 is has just been pushed down
+	if (switchNumber<8)	{
+		switch_readPinsStatus();
+
+		uint8_t mask = (B1 << switchNumber);
+		uint8_t buttonChange = (_switch_buttonStatusLastDown ^ _switch_buttonStatus) & mask;
+		_switch_buttonStatusLastDown ^= buttonChange;
+
+		return (buttonChange & _switch_buttonStatus) ? true : false;
+	} else return false;
+}
+bool SkaarhojUtils::switch_buttonIsPressed(uint8_t switchNumber) {	// Returns true if a switch 0-7 is currently pressed
+	if (switchNumber<8)	{
+		switch_readPinsStatus();
+		return (_switch_buttonStatus & (B1 << switchNumber)) ? true : false;
+	} else return false;
+}
+void SkaarhojUtils::switch_readPinsStatus()	{
+	_switch_buttonStatus = 
+		(digitalRead(_switch_digitalInputPins[0]) +
+		(digitalRead(_switch_digitalInputPins[1]) << 1)) ^ _switch_invertFilter;
+}
+
+
+/**
+ * Encoders functions
+ */
 void SkaarhojUtils::encoders_init() {
 	_encoders_countOn[0] = false;
 	_encoders_countOn[1] = false;
@@ -245,6 +385,9 @@ int SkaarhojUtils::encoders_state(uint8_t encNum, unsigned int buttonPushTrigger
 
 
 
+/**
+ * Touch functions:
+ */
 void SkaarhojUtils::touch_init() {
 	_touch_A0 = A0;
 	_touch_A1 = A1;

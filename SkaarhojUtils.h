@@ -41,6 +41,22 @@ class SkaarhojUtils
 	int _uniDirectionalSlider_previousTransitionPosition;
 	bool _uniDirectionalSlider_sliderDirectionUp;
 	
+	uint8_t _joystick_analogInputPin[2];
+	uint8_t _joystick_digitalInputPin;
+	int _joystick_tolerance;
+	int _joystick_previousPosition[2];
+	int _joystick_previousValue[2];
+	int _joystick_centerValue[2];
+	bool _joystick_buttonStatus;
+	bool _joystick_buttonStatusLastUp;
+	bool _joystick_buttonStatusLastDown;
+	
+	uint8_t _switch_digitalInputPins[2];
+	uint8_t _switch_buttonStatus;
+	uint8_t _switch_invertFilter;
+	uint8_t _switch_buttonStatusLastUp;
+	uint8_t _switch_buttonStatusLastDown;
+	
 	bool _encoders_countOn[2];
 	int _encoders_triggerCache[2];
 	bool _encoders_pushOn[2];
@@ -100,6 +116,21 @@ class SkaarhojUtils
 	bool uniDirectionalSlider_hasMoved();
 	int uniDirectionalSlider_position();
 	bool uniDirectionalSlider_isAtEnd();
+
+		// Joystick functions:
+	void joystick_init(int tolerance, uint8_t analogInputPinHorizontal, uint8_t analogInputPinVertical, uint8_t digitalInputPin);
+	bool joystick_hasMoved(uint8_t index);
+	int joystick_position(uint8_t index);
+	bool joystick_buttonUp();
+	bool joystick_buttonDown();
+	bool joystick_buttonIsPressed();	
+	
+	void switch_init(uint8_t digitalInputPin_sw0,uint8_t digitalInputPin_sw1);
+	bool switch_buttonUp(uint8_t switchNumber);
+	bool switch_buttonDown(uint8_t switchNumber);
+	bool switch_buttonIsPressed(uint8_t switchNumber);
+	void switch_readPinsStatus();
+
 	
 		// Encoder functions:
 	void encoders_init();
