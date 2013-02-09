@@ -5,19 +5,18 @@
  */
 
   // Pins for Arduino Breakout Shield 2:
-/*
 int greenLEDPin = 2;
 int redLEDPin = 3;
 int powerMgmPin = 4;
 int powerStatusDetectPin = A5;
-*/
 
+/*
   // Pins for Arduino Mega Extended Breakout Shield:
 int greenLEDPin = 22;
 int redLEDPin = 23;
 int powerMgmPin = 24;
 int powerStatusDetectPin = A10;
-
+*/
 
 
 
@@ -81,7 +80,15 @@ void powerOnScreen() {
     // Uses Analog pin A5 to detect from the LED voltage levels whether it is already on or not
   int analogInputValue = analogRead(powerStatusDetectPin);
   Serial << "Analog Read of PWRLED2: " << analogInputValue;
-  if (analogInputValue>700)  {  // 700 is the threshold value found by trying. If off, it's around 790, if on, it's around 650
+/*
+Samples on various monitors:
+(off) 830-670 (on)
+(off) 860-700 (on)
+(off) 870-710 (on)
+(off) 830-670 (on)
+=> 770 is a reasonable threshold.
+*/
+  if (analogInputValue>770)  {
     Serial << " => Screen off, turning it on..." << "\n";
     // Now, trying to turn the screen on:
     digitalWrite(powerMgmPin,0);  // First, set the next output of D4 to low

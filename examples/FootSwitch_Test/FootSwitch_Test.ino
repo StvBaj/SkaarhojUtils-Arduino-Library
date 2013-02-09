@@ -27,7 +27,7 @@ void setup() {
   
 
   // Initializing the footswitch, telling digital pin numbers for tip and ring:
-  utils.switch_init(34,33);
+  utils.switch_init(33,34);
 }
 
 // the loop routine runs over and over again forever:
