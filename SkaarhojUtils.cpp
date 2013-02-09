@@ -419,10 +419,12 @@ void SkaarhojUtils::touch_init() {
 	_touch_scaleRangeY = 720;
 }
 void SkaarhojUtils::touch_setExtended(){
+#if NUM_ANALOG_INPUTS > 8
 	_touch_A0 = A6;
 	_touch_A1 = A7;
 	_touch_A2 = A8;
 	_touch_A3 = A9;
+#endif
 }
 void SkaarhojUtils::touch_calibrationPointRawCoordinates(int p1x, int p1y, int p2x, int p2y, int p3x, int p3y, int p4x, int p4y) 	{
 	_touch_marginLeft = float ((p1x-(p2x-p1x)/2)+(p4x-(p3x-p4x)/2))/2;
