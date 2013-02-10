@@ -30,16 +30,18 @@ void setup()
 {
   Serial.begin(9600); // set up serial
   Serial << F("\n- - - - - - - -\nSerial Started\n");
+  delay(500);
 
   Wire.begin();           // Wire must be started!
-
-  // Set up each board:
+  delay(500);
+  // Set up each MCP23017 chip:
   for(uint8_t i=0;i<=7;i++)  {  
     GPIOchipArray[i].begin(i);
     GPIOchipArray[i].init();
     GPIOchipArray[i].internalPullupMask(65535);
     GPIOchipArray[i].inputOutputMask(65535);  // All inputs
   }
+  delay(500);
 }
 
 bool firstTime = true;
@@ -72,50 +74,52 @@ void loop()
 
   if (firstTime)  Serial << "\n\nPCA9685::\n";
   for(uint8_t i=0;i<=63;i++)  {  
-    // Set up each board:
-    ledDriver.begin(i);  // Address pins A5-A0 set to B111000
+    if (i!=48)  {  // Don't address the broadcast address.
+      // Set up each board:
+      ledDriver.begin(i);  // Address pins A5-A0 set to B111000
 
-    if (firstTime)  {
-      if (ledDriver.init())  {
-        Serial << "\nBoard #" << i << " found\n";
-        PCA9685_states[i] = true;
-      } 
-      else {
-        Serial << ".";
-        PCA9685_states[i] = false;
-      }
-    }
-    else{
-      bool ledDriverState = ledDriver.init();
-      if (ledDriverState!=PCA9685_states[i])  {
-        Serial << "Iter." << counter << ": PCA9685, Board #" << i << " " << (ledDriver.init()?"found":"missing");
-        Serial << "\n";
-        deviation = true;
-        theSpeed = 3;
-      } 
-      if (ledDriverState)  {
-        if (deviation)  {  // Blinks if there has been a deviation from expected:
-          for (uint8_t ii=0; ii<16; ii++)  {
-            ledDriver.setLEDDimmed(ii,counter%2 ? 100 : 0);
-          } 
+      if (firstTime)  {
+        if (ledDriver.init())  {
+          Serial << "\nBoard #" << i << " found\n";
+          PCA9685_states[i] = true;
         } 
         else {
-          if (counter%20 < 3)  {   // 100% color: (3 seconds)
+          Serial << ".";
+          PCA9685_states[i] = false;
+        }
+      }
+      else{
+        bool ledDriverState = ledDriver.init();
+        if (ledDriverState!=PCA9685_states[i])  {
+          Serial << "Iter." << counter << ": PCA9685, Board #" << i << " " << (ledDriver.init()?"found":"missing");
+          Serial << "\n";
+          deviation = true;
+          theSpeed = 3;
+        } 
+        if (ledDriverState)  {
+          if (deviation)  {  // Blinks if there has been a deviation from expected:
             for (uint8_t ii=0; ii<16; ii++)  {
-              ledDriver.setLEDDimmed(ii,(counter%20)*50);
-            } 
-          }
-          else if (counter%20 < 15)  {  // The random color programme:
-            for (uint8_t ii=0; ii<16; ii++)  {
-              ledDriver.setLEDDimmed(ii,random(0,6)*20);
+              ledDriver.setLEDDimmed(ii,counter%2 ? 100 : 0);
             } 
           } 
-          else {  // Same intensity for all LEDs:
-            int randColor1 = random(0,3)*50;
-            int randColor2 = random(0,3)*50;
-            for (uint8_t ii=0; ii<16; ii++)  {
-              ledDriver.setLEDDimmed(ii,ii%2 ? randColor1 : randColor2);
+          else {
+            if (counter%20 < 3)  {   // 100% color: (3 seconds)
+              for (uint8_t ii=0; ii<16; ii++)  {
+                ledDriver.setLEDDimmed(ii,(counter%20)*50);
+              } 
+            }
+            else if (counter%20 < 15)  {  // The random color programme:
+              for (uint8_t ii=0; ii<16; ii++)  {
+                ledDriver.setLEDDimmed(ii,random(0,6)*20);
+              } 
             } 
+            else {  // Same intensity for all LEDs:
+              int randColor1 = random(0,3)*50;
+              int randColor2 = random(0,3)*50;
+              for (uint8_t ii=0; ii<16; ii++)  {
+                ledDriver.setLEDDimmed(ii,ii%2 ? randColor1 : randColor2);
+              } 
+            }
           }
         }
       }
@@ -123,7 +127,7 @@ void loop()
     delay(theSpeed);
   }  
   if (counter%20 < 3)  {
-     delay(3000); 
+    delay(3000); 
   }
 
 
@@ -134,6 +138,8 @@ void loop()
   counter++;
   firstTime = false;
 } 
+
+
 
 
 
