@@ -142,6 +142,7 @@ class SkaarhojUtils
 		// Touch functions:
 	void touch_init();
 	void touch_setExtended();
+	void touch_setSnapToBorderZone(uint8_t zoneWidth);
 	void touch_calibrationPointRawCoordinates(int p1x, int p1y, int p2x, int p2y, int p3x, int p3y, int p4x, int p4y);
 	bool touch_isTouched();
 	int touch_getRawXVal();

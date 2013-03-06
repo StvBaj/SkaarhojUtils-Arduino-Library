@@ -1,9 +1,8 @@
 /*****************
  * Calibration of touch screen.
- * Follow instructions printed to the Serial monitor. Notice t
- * - kasper
+ * Follow instructions printed to the Serial monitor.
  *
- * This example code is in the public domain.
+ * - kasper
  */
 
 
@@ -11,6 +10,17 @@
 SkaarhojUtils utils;
 
 #include <EEPROM.h>      // For storing IP numbers
+
+
+
+// No-cost stream operator as described at 
+// http://arduiniana.org/libraries/streaming/
+template<class T>
+inline Print &operator <<(Print &obj, T arg)
+{  
+  obj.print(arg); 
+  return obj; 
+}
 
 
 // Collects 16 samples, buffer:
@@ -21,13 +31,14 @@ int roundRobinY[16];
 int calibrationCoordinatesX[5];
 int calibrationCoordinatesY[5];
 
+uint8_t checksumByte;
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("Welcome to the SKAARHOJ utils-library touchscreen calibration process!");
-  Serial.println("Please make sure your screen shows the SKAARHOJ monitor calibration chart edge to edge.");
-  Serial.println("This chart is found in the same folder on your hard drive along with this example file (Monitor Calibration Chart.png).");
-  Serial.println("Then, follow instructions below:");
+  Serial.println(F("Welcome to the SKAARHOJ utils-library touchscreen calibration process!"));
+  Serial.println(F("Please make sure your screen shows the SKAARHOJ monitor calibration chart edge to edge."));
+  Serial.println(F("This chart is found in the same folder on your hard drive along with this example file (Monitor Calibration Chart.png)."));
+  Serial.println(F("Then, follow instructions below:"));
   Serial.println("");
 
   utils.touch_init();
@@ -36,9 +47,9 @@ void setup() {
   for (int i=1; i<=4; i++)  {
     // Read point i:
     do {
-      Serial.print("Press and hold crosshair point ");
+      Serial.print(F("Press and hold crosshair point "));
       Serial.print(i);
-      Serial.println(" until a confirmation appears.");
+      Serial.println(F(" until a confirmation appears."));
       while (!utils.touch_isTouched())  {
       }
     } 
@@ -52,11 +63,11 @@ void setup() {
     calibrationCoordinatesX[3], calibrationCoordinatesY[3], 
     calibrationCoordinatesX[4], calibrationCoordinatesY[4]);
 
-    Serial.println("Screen is calibrated!");
-    Serial.println("In your arduino sketch you need to insert this line (copy/paste it) right after 'utils.touch_init();':");
+    Serial.println(F("Screen is calibrated!"));
+    Serial.println(F("In your arduino sketch you need to insert this line (copy/paste it) right after 'utils.touch_init();':"));
     Serial.println("");
 
-    Serial.print("       utils.touch_calibrationPointRawCoordinates(");
+    Serial.print(F("       utils.touch_calibrationPointRawCoordinates("));
     Serial.print(calibrationCoordinatesX[1]);    
     Serial.print(",");
     Serial.print(calibrationCoordinatesY[1]);    
@@ -74,29 +85,38 @@ void setup() {
     Serial.print(calibrationCoordinatesY[4]);    
     Serial.println(");");
     Serial.println("");
-    Serial.println("Before you do so, please touch the screen and verify the coordinates matches the calibration picture.");
+    Serial.println(F("Before you do so, please touch the screen and verify the coordinates matches the calibration picture."));
 
     Serial.println("");
-    Serial.println("This configuration has also be written to EEPROM memory now and some recent sketches will use the data from there.");
+    Serial.println(F("This configuration has also be written to EEPROM memory now and some recent sketches will use the data from there."));
     Serial.println("");
     
-    EEPROM.write(30,calibrationCoordinatesX[1]);
-    EEPROM.write(31,calibrationCoordinatesY[1]);
-    EEPROM.write(32,calibrationCoordinatesX[2]);
-    EEPROM.write(33,calibrationCoordinatesY[2]);
-    EEPROM.write(34,calibrationCoordinatesX[3]);
-    EEPROM.write(35,calibrationCoordinatesY[3]);
-    EEPROM.write(36,calibrationCoordinatesX[4]);
-    EEPROM.write(37,calibrationCoordinatesY[4]);
-    EEPROM.write(38,
-      (calibrationCoordinatesX[1]
+    EEPROM.write(50,(int)calibrationCoordinatesX[1]/256);
+    EEPROM.write(51,(int)calibrationCoordinatesX[1]%256);
+    EEPROM.write(52,(int)calibrationCoordinatesY[1]/256);
+    EEPROM.write(53,(int)calibrationCoordinatesY[1]%256);
+    EEPROM.write(54,(int)calibrationCoordinatesX[2]/256);
+    EEPROM.write(55,(int)calibrationCoordinatesX[2]%256);
+    EEPROM.write(56,(int)calibrationCoordinatesY[2]/256);
+    EEPROM.write(57,(int)calibrationCoordinatesY[2]%256);
+    EEPROM.write(58,(int)calibrationCoordinatesX[3]/256);
+    EEPROM.write(59,(int)calibrationCoordinatesX[3]%256);
+    EEPROM.write(60,(int)calibrationCoordinatesY[3]/256);
+    EEPROM.write(61,(int)calibrationCoordinatesY[3]%256);
+    EEPROM.write(62,(int)calibrationCoordinatesX[4]/256);
+    EEPROM.write(63,(int)calibrationCoordinatesX[4]%256);
+    EEPROM.write(64,(int)calibrationCoordinatesY[4]/256);
+    EEPROM.write(65,(int)calibrationCoordinatesY[4]%256);
+    EEPROM.write(66,
+      ((int)(calibrationCoordinatesX[1]
       + calibrationCoordinatesY[1]
       + calibrationCoordinatesX[2]
       + calibrationCoordinatesY[2]
       + calibrationCoordinatesX[3]
       + calibrationCoordinatesY[3]
       + calibrationCoordinatesX[4]
-      + calibrationCoordinatesY[4])  & 0xFF);  // checksum
+      + calibrationCoordinatesY[4]))  & 0xFF);  // checksum
+      
 }
 
 
