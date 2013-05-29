@@ -44,7 +44,12 @@ void SkaarhojUtils::uniDirectionalSlider_init(int sliderTolerance, int sliderLow
 		// Internal variables during operation:
 	_uniDirectionalSlider_previousSliderValue=-1;
 	_uniDirectionalSlider_previousTransitionPosition=-1;
-	_uniDirectionalSlider_sliderDirectionUp = true;
+	_uniDirectionalSlider_sliderDirectionUp = false;
+	_uniDirectionalSlider_disableUnidirectionality = false;
+}
+
+void SkaarhojUtils::uniDirectionalSlider_disableUnidirectionality(bool disable)	{
+	_uniDirectionalSlider_disableUnidirectionality = disable;
 }
 
 bool SkaarhojUtils::uniDirectionalSlider_hasMoved()	{
@@ -53,10 +58,10 @@ bool SkaarhojUtils::uniDirectionalSlider_hasMoved()	{
 	if (sliderValue >= _uniDirectionalSlider_previousSliderValue+_uniDirectionalSlider_sliderTolerance || sliderValue <= _uniDirectionalSlider_previousSliderValue-_uniDirectionalSlider_sliderTolerance)  {
 
 		// Find direction:
-		if (sliderValue >= _uniDirectionalSlider_previousSliderValue+_uniDirectionalSlider_sliderTolerance && (_uniDirectionalSlider_previousSliderValue==-1 || _uniDirectionalSlider_previousSliderValue<_uniDirectionalSlider_sliderLowEndOffset))  {
+		if (!_uniDirectionalSlider_disableUnidirectionality && sliderValue >= _uniDirectionalSlider_previousSliderValue+_uniDirectionalSlider_sliderTolerance && (_uniDirectionalSlider_previousSliderValue==-1 || _uniDirectionalSlider_previousSliderValue<_uniDirectionalSlider_sliderLowEndOffset))  {
 			_uniDirectionalSlider_sliderDirectionUp = true;
 		}
-		if (sliderValue <= _uniDirectionalSlider_previousSliderValue-_uniDirectionalSlider_sliderTolerance && (_uniDirectionalSlider_previousSliderValue==-1 || _uniDirectionalSlider_previousSliderValue>1024-_uniDirectionalSlider_sliderHighEndOffset))  {
+		if (!_uniDirectionalSlider_disableUnidirectionality && sliderValue <= _uniDirectionalSlider_previousSliderValue-_uniDirectionalSlider_sliderTolerance && (_uniDirectionalSlider_previousSliderValue==-1 || _uniDirectionalSlider_previousSliderValue>1024-_uniDirectionalSlider_sliderHighEndOffset))  {
 			_uniDirectionalSlider_sliderDirectionUp = false;
 		}
 
